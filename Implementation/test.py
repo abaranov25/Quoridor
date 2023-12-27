@@ -52,20 +52,27 @@ class TestQuoridorGame(unittest.TestCase):
     def test_illegal_move_out_of_turn(self):
         self.assertFalse(self.game.perform_action(self.game.players[1], "move", (0, 1)))  # Player 1 moving out of turn
 
-    def test_jump_over_opponent_1(self):
+    def test_hopping_1(self):
         p0,p1 = self.game.players
         # Set up players for jumping
         p0.pos = (5, 4)
         p1.pos = (5, 5)
-        self.assertTrue(self.game.perform_action(p0, "move", (0, 2)))  # Attempt to jump over opponent
-        self.assertEqual(p0.pos, (5, 6))  # Check if player 0 jumped to the correct position
+        self.assertTrue(self.game.perform_action(p0, "move", (0, 2)))  # Jump over opponent
+        self.assertEqual(p0.pos, (5, 6)) 
 
-    def test_diagonal_hopping_2(self):
+    def test_hopping_2(self):
         # Setup players for diagonal hopping scenario
         p0, p1 = self.game.players
         p0.pos = (2, 2)
         p1.pos = (1, 2)
         self.assertFalse(self.game.perform_action(p0, "move", (-1, -1)))  # Move diagonally
+
+    def test_hopping_3(self):
+        # Setup players for diagonal hopping scenario
+        p0, p1 = self.game.players
+        p0.pos = (2, 2)
+        p1.pos = (1, 2)
+        self.assertFalse(self.game.perform_action(p0, "move", (-2, 0)))  # Hop off the board
 
     def test_place_more_than_10_walls(self):
         p0, p1 = self.game.players

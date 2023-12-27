@@ -89,9 +89,11 @@ class Game():
                     displacement vector (int, int)
         '''
         new_player_pos = (player.pos[0] + dir[0], player.pos[1] + dir[1])
+        if new_player_pos not in self.graph.nodes:
+            return False
         other_player = self.players[1 - player.player_id]
         if self.dist(player.pos, new_player_pos) == 1:
-            return new_player_pos in self.graph.nodes and new_player_pos != other_player.pos and self.graph.has_edge(player.pos, new_player_pos)
+            return new_player_pos != other_player.pos and self.graph.has_edge(player.pos, new_player_pos)
 
         elif self.dist(player.pos, new_player_pos) == 2:
             behind_opponent = (2 * other_player.pos[0] - player.pos[0], 2 * other_player.pos[1] - player.pos[1])
@@ -103,12 +105,12 @@ class Game():
                 return False
             if self.graph.has_edge(other_player.pos, behind_opponent):
                 return new_player_pos == behind_opponent
-            elif new_player_pos == diagonal_right:
-                return self.graph.has_edge(other_player.pos, diagonal_right)
-            elif new_player_pos == diagonal_left:
-                return self.graph.has_edge(other_player.pos, diagonal_left)   
-            else:
-                return False
+            elif behind_opponent[0] in list(range(1,10)) and behind_opponent[1] in list(range(1,10)):
+                if new_player_pos == diagonal_right:
+                    return self.graph.has_edge(other_player.pos, diagonal_right) 
+                elif new_player_pos == diagonal_left:
+                    return self.graph.has_edge(other_player.pos, diagonal_left)   
+            return False
         else:
             return False
         
@@ -129,7 +131,7 @@ class Game():
             return False
 
         allowed_pos = [x + 0.5 for x in list(range(1,10))]
-        if pos[0] not in allowed_pos or pos[1] not in allowed_pos or (pos, orientation) in self.walls:
+        if pos[0] not in allowed_pos or pos[1] not in allowed_pos or (pos, "horizontal") in self.walls or (pos, "vertical") in self.walls:
             return False
 
         surrounding_nodes = [(pos[0] - 0.5, pos[1] - 0.5), (pos[0] + 0.5, pos[1] - 0.5), (pos[0] + 0.5, pos[1] + 0.5), (pos[0] - 0.5, pos[1] + 0.5)]
@@ -173,18 +175,17 @@ class Game():
 
         player:     Current player (Player)
         '''
-        goal_row = 9 - 9 * player.player_id
+        goal_row = 9 - 8 * player.player_id
         visited = set(player.pos,)
         queue = [player.pos]
         while len(queue) > 0:
             cur = queue.pop(0)
             for neighbor in self.graph.neighbors(cur):
-                if neighbor in visited:
-                    return True
                 if neighbor[1] == goal_row:
-                    break
-                queue.append(neighbor)
-                visited.add(neighbor)
+                    return True
+                elif neighbor not in visited:
+                    queue.append(neighbor)
+                    visited.add(neighbor)
         return False
 
 
