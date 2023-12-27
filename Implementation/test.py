@@ -18,11 +18,18 @@ class TestQuoridorGame(unittest.TestCase):
         self.assertTrue(self.game.perform_action(p1, "wall", ((5.5, 8.5), "vertical")))
         self.assertFalse(self.game.perform_action(p0, "wall", ((5.5, 7.5), "vertical"))) # place a wall that overlaps with a wall
         self.assertFalse(self.game.perform_action(p0, "wall", ((0.5, 0.5), "horizontal")))  # Out of bounds
-    
+        self.assertTrue(self.game.perform_action(p0, "wall", ((5.5, 1.5), "vertical")))  # Out of bounds
+
     def test_wall_blocking_movement(self):
         p0, p1 = self.game.players
         self.game.perform_action(p0, "wall", ((4.5, 8.5), "horizontal"))
         self.assertFalse(self.game.perform_action(p1, "move", (0, -1)))  # Move down into a wall
+
+    def test_wall_blocks_player_from_winning(self):
+        p0, p1 = self.game.players
+        self.assertTrue(self.game.perform_action(p0, "wall", ((4.5,1.5), "horizontal")))
+        self.assertTrue(self.game.perform_action(p1, "wall", ((3.5,1.5), "vertical")))
+        self.assertFalse(self.game.perform_action(p0, "wall", ((5.5,1.5), "vertical")))
 
     def test_win_condition_1(self):
         p0,p1 = self.game.players
@@ -35,7 +42,7 @@ class TestQuoridorGame(unittest.TestCase):
     def test_win_condition_2(self):
         p0,p1 = self.game.players
         print(p0.pos, p1.pos)
-        self.game.perform_action(p0,"move", (0,1))
+        self.game.perform_action(p0, "move", (1,0))
         for i in range(8):
             self.game.perform_action(p1, "move", (0, -1))  # Move right towards the goal
             if i < 7: 
@@ -68,7 +75,6 @@ class TestQuoridorGame(unittest.TestCase):
         self.assertFalse(self.game.perform_action(p0, "wall", ((7.5,7.5), "horizontal")))
         self.assertEqual(p0.remaining_walls, 0)  # Player should have 0 walls left
 
-    
 # Create a test suite combining all the test cases
 def suite():
     test_suite = unittest.TestSuite()
