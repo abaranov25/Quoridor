@@ -115,7 +115,7 @@ class Game():
             return False
         
 
-    def is_legal_wall(self, player, pos, orientation):
+    def is_legal_wall(self, player, pos, orientation, undo_successful_wall = False):
         '''
         Checks if a wproposed wall from a player is in accordance
         with the rules of Quoridor. Specifically makes sure that
@@ -146,8 +146,8 @@ class Game():
             return False
         self.graph.remove_edge(connections[0][0], connections[0][1])
         self.graph.remove_edge(connections[1][0], connections[1][1])
-        legal = self.check_path_to_end(self.players[0]) and self.check_path_to_end(self.players[1])
-        if not legal:
+        legal = self.check_path_to_end(self.players[0])[0] and self.check_path_to_end(self.players[1])[0]
+        if not legal or undo_successful_wall:
             self.graph.add_edge(connections[0][0], connections[0][1])
             self.graph.add_edge(connections[1][0], connections[1][1])
         return legal
@@ -166,7 +166,7 @@ class Game():
         else:
             return False
         
-    def check_path_to_end(self, player):
+    def check_path_to_end(self, player): # BUG: DOESNT TAKE INTO ACCOUNT DOUBLE HOPS
         '''
         Uses BFS to determine whether a certain player
         can make it to the other side of the board given
@@ -178,15 +178,18 @@ class Game():
         goal_row = 9 - 8 * player.player_id
         visited = set(player.pos,)
         queue = [player.pos]
+        lens = [0]
         while len(queue) > 0:
             cur = queue.pop(0)
+            path_len = lens.pop(0)
             for neighbor in self.graph.neighbors(cur):
                 if neighbor[1] == goal_row:
-                    return True
+                    return True, path_len
                 elif neighbor not in visited:
                     queue.append(neighbor)
                     visited.add(neighbor)
-        return False
+                    lens.append(path_len + 1)
+        return False, None
 
 
     def dist(self, pos1, pos2): 

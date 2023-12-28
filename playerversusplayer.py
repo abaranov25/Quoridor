@@ -97,19 +97,6 @@ def get_potential_wall_positions(game):
                 positions.append((i, j))
     return positions
 
-def is_wall_selected(mouse_pos):
-    """
-    Checks if a selectable wall area is clicked.
-
-    Args:
-    mouse_pos (tuple): The position of the mouse click.
-
-    Returns:
-    bool: True if a wall area is clicked, False otherwise.
-    """
-    # Check if the mouse click is within either of the wall selection areas
-    return horizontal_wall_rect.collidepoint(mouse_pos) or vertical_wall_rect.collidepoint(mouse_pos)
-
 def is_move_clicked(move, mouse_pos):
     move_rect = pygame.Rect(
         (move[0] - 1) * SQUARE_SIZE + BOARD_OFFSET_X,
