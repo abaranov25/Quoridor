@@ -1,4 +1,5 @@
 import networkx as nx
+import heapq
 
 class Player():
     def __init__(self, player_id, pos, remaining_walls):
@@ -205,7 +206,7 @@ class Game():
         
 
 
-    def check_path_to_end(self, player): # BUG: DOESNT TAKE INTO ACCOUNT DOUBLE HOPS
+    def old_check_path_to_end(self, player): # BUG: DOESNT TAKE INTO ACCOUNT DOUBLE HOPS
         '''
         Uses BFS to determine whether a certain player
         can make it to the other side of the board given
@@ -229,6 +230,35 @@ class Game():
                     visited.add(neighbor)
                     lens.append(path_len + 1)
         return False, None
+    
+    def check_path_to_end(self, player):
+        '''
+        Uses A* search to determine whether a certain player
+        can make it to the other side of the board given
+        current wall placements. Returns True if the
+        player can, and False if the player can not. 
+
+        player:     Current player (Player)
+        '''
+        goal_row = 9 - 8 * player.player_id
+        start = player.pos
+        def heuristic(pos):
+            return self.dist(pos, (pos[0],goal_row))
+        g_values = {start: 0}
+        queue = []
+        heapq.heappush(queue, (g_values[start] + heuristic(start), start))
+        while queue:
+            score, node = heapq.heappop(queue)
+            if node[1] == goal_row:
+                return True, score
+            tentative_g = g_values[node] + 1
+            for neighbor in self.graph.neighbors(node):
+                if neighbor not in g_values:
+                    g_values[neighbor] = tentative_g
+                    heapq.heappush(queue, (tentative_g + heuristic(neighbor), neighbor))
+        return False, None
+
+        
 
 
 

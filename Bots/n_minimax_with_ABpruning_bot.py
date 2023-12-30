@@ -1,11 +1,11 @@
+# MINIMAX BOT  WITH ALPHA-BETA PRUNING #
+# NEXT UP WILL BE USING KILLER HEURISTIC #
+
 from copy import deepcopy
-
-# MINIMAX BOT # 
-
 import random
 import math
 
-class nMiniMaxBot:
+class nMiniMaxPruningBot:
     def __init__(self, game, player_id, n):
         self.game = game
         self.player_id = player_id
@@ -20,34 +20,56 @@ class nMiniMaxBot:
             return False
         self.stored_states = {}
         max_depth = self.n
-        best_score, best_move = self.minimax(self.game, max_depth, maximizing_score = True)
+        best_score, best_move = self.minimax(-1e20, 1e20, self.game, max_depth, maximizing_score = True)
         print(best_score)
         self.game.perform_action(self.bot, best_move[0], best_move[1])
 
     
 
-    def minimax(self, game, depth, maximizing_score):
+    def minimax(self, alpha, beta, game, depth, maximizing_score):
+        if depth == self.n:
+            best_10 = []
+
         if depth == 0 or game.winner:
             return self.heuristic(game, self.bot, self.player), None
 
-        best_score = None
+        best_move = None
+        best_score = -1e40 if maximizing_score else 1e40
         cur_player = game.players[game.cur_player]
+
         for action_type, action in self.generate_all_moves():
             if game.perform_action(cur_player, action_type, action):
                 gamestate = self.hash_game_state(game)
                 if gamestate in self.stored_states:
                     score = self.stored_states[gamestate]
                 else:
-                    score, _ = self.minimax(game, depth - 1, not maximizing_score)
+                    score, _ = self.minimax(alpha, beta, game, depth - 1, not maximizing_score)
                     self.stored_states[gamestate] = score
-                if maximizing_score and (not best_score or score > best_score):
-                    best_score = score
-                    best_move = (action_type, action)
-                elif not maximizing_score and (not best_score or score < best_score):
-                    best_score = score
-                    best_move = (action_type, action)
+                
                 game.undo_last_move()
+                if maximizing_score:
+                    if score > best_score:
+                        best_score = score
+                        best_move = (action_type, action)
+                    if depth == self.n: ### THIS IF STATEMENT IS ONLY TO GATHER INFO ON HOW GOOD THE BEST MOVES ARE
+                        if len(best_10) < 10:
+                            best_10.append(round(score,2))
+                        elif min(best_10) < score:
+                            best_10.remove(min(best_10))
+                            best_10.append(round(score,2))
+                    alpha = max(alpha, best_score)
+                    if best_score > beta:
+                        break
+                else:
+                    if score < best_score:
+                        best_score = score
+                        best_move = (action_type, action)
+                    beta = min(beta, best_score)
+                    if best_score < alpha:
+                        break
         
+        if depth == self.n:
+            print(best_10)
         return best_score, best_move
     
                 
@@ -72,16 +94,23 @@ class nMiniMaxBot:
 
         bot_path_len = game.check_path_to_end(bot)[1]
         player_path_len = game.check_path_to_end(player)[1]
-        bot_mobility = self.num_legal_moves(game, bot)
-        player_mobility = self.num_legal_moves(game, player)
+        bot_mobility = self.num_strategic_moves(game, bot)
+        player_mobility = self.num_strategic_moves(game, player)
         distance_to_opponent = game.dist(bot.pos, player.pos)
         turns_taken = len(game.actions)
 
+
+        # Dynamic weighting based on the stage of the game
+        path_weight = 1.5 + turns_taken / 10
+        wall_weight = 1 - turns_taken / 25
+        mobility_weight = 0.1 + turns_taken / 50
+        opponent_distance_weight = 0.05
+
         return (
-            -1.5 * bot_path_len * 1.025 ** turns_taken + 2 * player_path_len * 1.05 ** turns_taken # Prioritize reaching the goal and blocking opponent
-            + 1 * bot.remaining_walls - 0.5 * player.remaining_walls * 1.025 ** turns_taken # Wall count
-            + 0.1 * (bot_mobility - player_mobility)  # Mobility
-            - 0.05 * distance_to_opponent  # Distance to opponent
+            - path_weight * bot_path_len + path_weight * player_path_len                                              # Path length and progression
+            + wall_weight * bot.remaining_walls - wall_weight * player.remaining_walls                               # Wall count and efficiency
+            + mobility_weight * (bot_mobility - player_mobility)                                                    # Mobility
+            - opponent_distance_weight * distance_to_opponent                                                       # Proximity to opponent
         )
     
 
@@ -106,7 +135,7 @@ class nMiniMaxBot:
     
 
 
-    def num_legal_moves(self, game, player):
+    def num_strategic_moves(self, game, player):
         count = 0
         directions = [(-1, 0), (1, 0), (0, 1), (0, -1), (-1, 1), (-1,-1), (1, -1), (1, 1), (2,0), (-2,0), (0,2), (0,-2)]  # Immediate moves only
         wall_positions = self.strategic_wall_positions(player)  # A subset of wall positions
@@ -122,6 +151,8 @@ class nMiniMaxBot:
                 count += 1
 
         return count
+
+
 
     def strategic_wall_positions(self, player):
         # Example: Return wall positions near the player and along central paths

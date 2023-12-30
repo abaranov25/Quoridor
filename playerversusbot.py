@@ -8,7 +8,7 @@ from v1 import Game
 sys.path.append('./Bots')
 from n_minimax_bot import nMiniMaxBot
 from minimax_bot import MiniMaxBot
-
+from n_minimax_with_ABpruning_bot import nMiniMaxPruningBot
 
 # Initialize pygame
 pygame.init()
@@ -247,7 +247,7 @@ def main():
 
 if __name__ == "__main__":
     game = Game()
-    human_player_id = random.randint(0, 1)
+    human_player_id = 0#random.randint(0, 1)
     bot_player_id = 1 - human_player_id
-    bot = nMiniMaxBot(game, bot_player_id, n=3) # HERE IS WHERE YOU CHANGE WHICH BOT TO PLAY AGAINST #
+    bot = nMiniMaxPruningBot(game, bot_player_id, n=3) # HERE IS WHERE YOU CHANGE WHICH BOT TO PLAY AGAINST #
     main()
