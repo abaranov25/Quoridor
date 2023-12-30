@@ -2,5 +2,6 @@
     "python.analysis.extraPaths": [
         "./Implementation",
         "./Bots"
-    ]
+    ],
+    "julia.environmentPath": "/Users/allenbaranov/Desktop/Quoridor"
 }

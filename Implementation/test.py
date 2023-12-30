@@ -35,8 +35,9 @@ class TestQuoridorGame(unittest.TestCase):
         p0,p1 = self.game.players
         print(p0.pos, p1.pos)
         for i in range(8):
-            self.game.perform_action(p0, "move", (0, 1))  # Move right towards the goal
-            self.game.perform_action(p1, "move", ((-1)**i,0))
+            self.game.perform_action(p0, "move", (0, 1)) 
+            if i < 7:
+                self.game.perform_action(p1, "move", ((-1)**i,0))
         self.assertEqual(self.game.winner, 0)
 
     def test_win_condition_2(self):
@@ -44,7 +45,7 @@ class TestQuoridorGame(unittest.TestCase):
         print(p0.pos, p1.pos)
         self.game.perform_action(p0, "move", (1,0))
         for i in range(8):
-            self.game.perform_action(p1, "move", (0, -1))  # Move right towards the goal
+            self.game.perform_action(p1, "move", (0, -1))  
             if i < 7: 
                 self.game.perform_action(p0, "move", ((-1)**i,0))
         self.assertEqual(self.game.winner, 1)
@@ -81,6 +82,35 @@ class TestQuoridorGame(unittest.TestCase):
             self.game.cur_player = 0
         self.assertFalse(self.game.perform_action(p0, "wall", ((7.5,7.5), "horizontal")))
         self.assertEqual(p0.remaining_walls, 0)  # Player should have 0 walls left
+
+    def test_undo_action_1(self):
+        p0, p1 = self.game.players
+        self.assertTrue(self.game.perform_action(p0, "wall", ((4.5,8.5), "horizontal")))
+        self.assertTrue(self.game.undo_last_move())
+        self.assertFalse(self.game.undo_last_move())
+        self.assertTrue(self.game.perform_action(p0, "wall", ((1.5,1.5), "vertical")))
+        self.assertTrue(self.game.perform_action(p1, "move", (-1, 0)))
+        self.assertTrue(self.game.undo_last_move())
+        self.assertTrue(self.game.perform_action(p1, "move", (0,-1)))
+
+    def test_undo_action_2(self):
+        p0, p1 = self.game.players
+        p0,p1 = self.game.players
+        for i in range(8):
+            self.game.perform_action(p0, "move", (0, 1))  
+            if i < 7:
+                self.game.perform_action(p1, "move", ((-1)**i,0))
+        self.assertTrue(self.game.undo_last_move())
+        self.assertEqual(self.game.winner, None)
+
+    def test_undo_action_3(self):
+        p0, p1 = self.game.players
+        self.game.perform_action(p0, "wall", ((1.5,1.5), "horizontal"))
+        self.game.perform_action(p1, "wall", ((3.5,3.5), "horizontal"))
+        self.game.undo_last_move()
+        self.assertEqual(p0.remaining_walls, 9) #check that undo action returns wall
+        self.assertEqual(p1.remaining_walls, 10) 
+
 
 # Create a test suite combining all the test cases
 def suite():

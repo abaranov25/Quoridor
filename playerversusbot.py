@@ -1,10 +1,12 @@
 import pygame
 import sys
 import random
+import time
 
 sys.path.append('./Implementation')
 from v1 import Game
 sys.path.append('./Bots')
+from n_minimax_bot import nMiniMaxBot
 from minimax_bot import MiniMaxBot
 
 
@@ -169,14 +171,11 @@ def main():
     potential_wall_positions = []
     clock = pygame.time.Clock()
 
-    human_player_id = random.randint(0, 1)
-    bot_player_id = 1 - human_player_id
-    bot = MiniMaxBot(game, bot_player_id) # HERE IS WHERE YOU CHANGE WHICH BOT TO PLAY AGAINST #
 
     while True:
         if game.cur_player == bot_player_id and game.winner == None:
             bot.make_move()
-        else:
+        elif game.winner == None:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -229,7 +228,9 @@ def main():
                                         selected_player = None
                                         legal_moves = []
                                         break
-
+        else:
+            time.sleep(7)
+            quit()
         draw_board(game)
         draw_pawns(game)
         draw_walls(game)
@@ -241,7 +242,12 @@ def main():
             highlight_potential_wall_positions(potential_wall_positions)
         pygame.display.flip()
         clock.tick(60)
+        time.sleep(0.05)
+
 
 if __name__ == "__main__":
     game = Game()
+    human_player_id = random.randint(0, 1)
+    bot_player_id = 1 - human_player_id
+    bot = nMiniMaxBot(game, bot_player_id, n=3) # HERE IS WHERE YOU CHANGE WHICH BOT TO PLAY AGAINST #
     main()

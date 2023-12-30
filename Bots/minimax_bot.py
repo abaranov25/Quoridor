@@ -20,32 +20,28 @@ class MiniMaxBot:
         max_min_max_h = None
         best_move = None
         for move in self.generate_all_legal_moves(self.game, self.bot):
-            game_copy = deepcopy(self.game)
-            bot_copy = game_copy.players[self.player_id]
-            player_copy = game_copy.players[1 - self.player_id]
-            game_copy.perform_action(bot_copy, move[0], move[1])
+            self.game.perform_action(self.bot, move[0], move[1])
             min_max_h = None
-            for response in self.generate_all_legal_moves(game_copy, player_copy):
-                game_copy.perform_action(player_copy, response[0], response[1])
+            for response in self.generate_all_legal_moves(self.game, self.player):
+                self.game.perform_action(self.player, response[0], response[1])
                 max_h = None
-                for next_move in self.generate_all_legal_moves(game_copy, bot_copy):
-                    game_copy.perform_action(bot_copy, next_move[0], next_move[1])
-                    x = self.heuristic(game_copy, bot_copy, player_copy)
+                for next_move in self.generate_all_legal_moves(self.game, self.bot):
+                    self.game.perform_action(self.bot, next_move[0], next_move[1])
+                    x = self.heuristic(self.game, self.bot, self.player)
                     if max_h == None or max_h < x:
                         max_h = x
-                
+                    self.game.undo_last_move()
                 if min_max_h == None or min_max_h > max_h:
                     min_max_h = max_h
+                self.game.undo_last_move()
             if max_min_max_h == None or (max_min_max_h < min_max_h):
                 best_move = move
                 max_min_max_h = min_max_h
+            self.game.undo_last_move()
         print(max_min_max_h)
         
         self.game.perform_action(self.bot, best_move[0], best_move[1])
                 
-
-
-
     
     def generate_all_legal_moves(self, game, player):
         directions = [(-1, 0), (1, 0), (0, 1), (0, -1), (-1, 1), (-1,-1), (1, -1), (1, 1), (2,0), (-2,0), (0,2), (0,-2)]  # Possible directions
